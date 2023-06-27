@@ -13,7 +13,7 @@
     - `isEmpty()` 检查栈是否为空。
     - `size()` 返回栈中元素的数目。
     
-- Python 实现
+- 实现
 
     ```python
     class Stack:
@@ -59,7 +59,7 @@
 
     可以发现，对于第二种情况，若未考虑 3-4 **加粗部分**，由于栈的 LIFO 性质，`+` 将在 `*` 之前，违背了优先顺序。事实上，处理某个运算符时，可将栈内的优先级更高的运算符视为在括号内，于是同 3-3 操作，将其取出并添加到结果列表末尾。
 
-  - Python 实现
+  - 实现
 
     ```python
     import Stack, string
@@ -95,7 +95,7 @@
 
   - 非常 trivial ，两个两个取操作数，注意从栈中取出后要颠倒顺序。
 
-  - Python 实现
+  - 实现
 
     ```python
     import Stack
@@ -124,6 +124,116 @@
         else:
             return op1 - op2
     ```
+
+## 队列、双端队列
+
+### 队列应用
+
+#### 基数排序 (radix sort)
+
+- 属于*分配式排序* (distribution sort)，或称*桶排序* (bucket sort)。
+
+- 例如，对一列十进制正整数从小到大排序：
+
+  - 算法：$k$ 依次从 1 到最长数据位数，
+
+    1. 创建 10 个空的 `Queue` 实例 (编号 $i$ 为 0~9 )；
+    2. 按 `lst` 内数字顺序，将第 $k$ 位数字为 $i$ 的数入队至第 $i$ 个队列中；
+    3. 清空 `lst` ；
+    4. 按队列编号顺序，以 FIFO 的顺序依次将元素出队并添加到 `lst` 末尾。
+
+  - 实现：
+
+    ```python
+    def RadixSort(lst):
+        max_len = len(str(max(lst)))
+        for i in range(max_len):
+            queues = [Queue() for _ in range(10)] 
+            # 注意：queues = [Queue()] * 10 生成的是一个含有10个指向同一个 Queue 实例的列表！
+            for item in lst:
+                digit = int(item/(10**i) % 10)
+                queues[digit].enqueue(item)
+            lst = []
+            for q in queues:
+                while not q.isEmpty():
+                    lst.append(q.dequeue())
+        return lst
+    ```
+
+  - 复杂度：$O(n*k)$，其中 $k$ 为最大数据位数
+
+## 链表、双向链表
+
+### 双向链表实现
+
+- 图示
+
+  ![DoubleLinkList](https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/DoubleLinkList.png)
+
+- 实现（`DoubleLinkList` 只以 `remove` 方法为例）
+
+  ```python
+  class Node:
+      def __init__(self, data, _prev=None, _next=None):
+          self.prev = _prev
+          self.data = data
+          self.next = _next
+  
+  class DoubleLinkList:
+      def __init__(self):
+          self.head = None
+          self._length = 0
+      def is_empty(self): return self._length == 0
+      def length(self): return self._length
+      def nodes_list(self): pass
+      def add(self, data): pass
+      def append(self, data): pass
+      def insert(self, pos, data): pass
+      def remove(self, data):
+          cur = self.head
+          found = False
+          while not found:
+              if cur.data == data:
+                  found = True
+              else:
+                  cur = cur.next
+          if cur == self.head:
+              self.head = cur.next
+              self.head.prev = None
+          else:
+              cur.prev.next = cur.next
+              if cur.next != None:
+                  cur.next.prev = cur.prev
+          self._length -= 1
+      def modify(self, pos, data): pass
+      def search(self, data): pass
+  ```
+
+  - 注：实现单向链表的 `remove` 方法时，由于并没有反向遍历链表的方法，解决方法是在遍历时使用两个外部引用 `current` 与 `previous` ：
+
+    ```python
+    def remove(self, data):
+        current = self.head
+        previous = None
+        found = False
+        while not found:
+            if current.data == data:
+                found = True
+            else:
+                previous = current
+                current = current.next
+        if previous == None:
+            self.head = current.next
+        else:
+            previous.next = current.next
+        self._length -= 1
+    ```
+
+    
+
+  
+
+  
 
 
 
