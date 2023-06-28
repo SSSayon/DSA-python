@@ -170,7 +170,7 @@
 
   ![DoubleLinkList](https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/DoubleLinkList.png)
 
-- 实现（`DoubleLinkList` 只以 `remove` 方法为例）
+- 实现（只以 `remove` 方法为例）
 
   ```python
   class Node:
