@@ -70,13 +70,13 @@
 
   ```python
   class HashTable:
-      def __init__(self):
-          self.size = 11 # 素数
+      def __init__(self, size=11):
+          self.size = size # 素数
           self.slots = [None] * self.size
           self.data = [None] * self.size
   
       def put(self, key, data): # 处理冲突时，采用线性探测法
-          hashvalue = self.hashfunction(key, len(self.slots))
+          hashvalue = self.hashfunction(key)
   
           if self.slots[hashvalue] == None:
               self.slots[hashvalue] = key
@@ -85,11 +85,10 @@
               if self.slots[hashvalue] == key:
                   self.data[hashvalue] = data
               else:
-                  nextslot = self.rehash(hashvalue, len(self.slots))
+                  nextslot = self.rehash(hashvalue)
                   while self.slots[nextslot] != None and \
                   		self.slots[nextslot] != key:
-                      nextslot = self.rehash(nextslot, \ 
-                                             len(self.slots))
+                      nextslot = self.rehash(nextslot)
   
                   if self.slots[nextslot] == None:
                       self.slots[nextslot] = key
@@ -97,14 +96,14 @@
                   else:
                       self.data[nextslot] = data
   
-      def hashfunction(self, key, size): # 采用简单的取余函数
-          return key % size
+      def hashfunction(self, key): # 采用简单的取余函数
+          return key % self.size
   
-      def rehash(self, oldhash, size):
-          return (oldhash + 1) % size
+      def rehash(self, oldhash):
+          return (oldhash + 1) % self.size
   
       def get(self, key):
-          startslot = self.hashfunction(key, len(self.slots))
+          startslot = self.hashfunction(key)
   
           data = None
           stop = False
@@ -116,12 +115,12 @@
                   found = True
                   data = self.data[position]
               else:
-                  position=self.rehash(position, len(self.slots))
+                  position=self.rehash(position)
                   if position == startslot:
                       stop = True
           return data
   
-      # 重载了 __getitem__ 和 __setitem__ , 以通过 [] 进行访问
+      # 重载 __getitem__ 和 __setitem__ , 以通过 [] 进行访问
       def __getitem__(self, key):
           return self.get(key)
   
