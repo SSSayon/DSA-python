@@ -128,6 +128,7 @@
           self.put(key, data)
   ```
 
+<div style="page-break-after: always;"></div>
 
 ## 排序
 

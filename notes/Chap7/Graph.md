@@ -49,7 +49,7 @@
 
 具体实现见 [这里](.\graph.py) （ `Vertex` 类和 `Graph` 类）
 
-
+<div style="page-break-after: always;"></div>
 
 ## 宽度优先搜索 BFS
 
@@ -72,7 +72,7 @@
   2. 基于结束时间，将顶点按照递减顺序存储在列表中
   3. 将有序列表作为拓扑排序的结果返回
 
-
+<div style="page-break-after: always;"></div>
 
 ## 强连通分量 SCC
 
@@ -119,18 +119,15 @@
   2. 计算 G 的转置 G'
   3. 对图 G' 调用 `dfs` ，按照结束时间的递减顺序访问顶点
   4. 第3步得到的深度优先森林中的每一棵树都是一个强连通分量
-
 - 解释 (by ChatGPT)
 
   - The first DFS traversal gives us the finishing times of vertices, which essentially **provides a reverse topological order** of the graph.
   - In the second DFS traversal, we explore the transpose graph G' **starting from the ‘sink’ vertices** (those with the highest finishing times), which guarantees that we cover all vertices within each strongly connected component before moving to the next sink vertex.
   - The algorithm takes advantage of the fact that in the transpose graph G', the sink vertices of each strongly connected component become the **roots** of the trees in the DFS forest, and each exploration from a sink vertex covers the **entire** component.
-
 - 实现：详见 [这里](.\SCC.py) 
-
 - 时间复杂度：$O(V + E)$ ，但因为完整 dfs 了两次，应该说是 asymptotically optimal 。在实际的测试中，Tarjan 算法的运行效率比 Kosaraju 算法高 30% 左右
 
-  
+<div style="page-break-after: always;"></div>
 
 ## 最短路径问题
 
@@ -145,7 +142,7 @@
 - 实现：详见 [这里](.\shortest_distance.py) 
 - 时间复杂度：$O((V+E)\log V)$
 
-
+<div style="page-break-after: always;"></div>
 
 ## 最小生成树
 
@@ -176,7 +173,122 @@ A **spanning tree** is a sub-graph of an undirected connected graph, which inclu
 - 实现：详见 [这里](.\mst.py) 
 - 时间复杂度：$O(E \log E)$ ，适用于稀疏图
 
+<div style="page-break-after: always;"></div>
 
+## 模式匹配
 
+在长字符串中寻找*模式*。这种模式常被称作*子串*。
 
+- 以下均以 DNA 串的模式匹配为例
 
+### 简单比较
+
+<img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716010539_cp.png" alt="cp" style="zoom: 67%;" />
+
+- 时间复杂度 $O(mn)$ 
+- 如果对模式有一定的了解，可先对其做一些预处理，就可以创建时间复杂度为 $O(n)$ 的模式匹配器
+
+### 确定有限状态自动机 DFA
+
+- Deterministic Finite Automation
+
+在 DFA 图中，每个顶点是一个状态，用于记录匹配成功的模式数；每一条边代表处理文本中的一个字母后发生的转变。
+
+- DFA 图用状态 0 表示初始状态，用两个同心圆表示最终状态
+
+#### 原理 
+
+记录当前状态，并在一开始时将其设为 0 。读入下一个字母，根据这个字母，相应地转变为下一个状态，并将它作为新的当前状态。由定义可知，对于每个字母，每个状态有且只有一种转变。这意味着对于基因字母表，每个状态可能有 4 种转变。如下图所示，我们在某些边上标出了多个字母，表示到同一个状态的多种转变。重复上述做法，直到终止（进入最终状态或穷尽字母）。
+
+<img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716011450_DFA.png" alt="DFA" style="zoom:67%;" />
+
+#### 分析
+
+- 已有 DFA 图，时间复杂度 $O(n)$ 
+- 但还需考虑构建 DFA 图的预处理步骤
+  - 有很多知名算法可以根据模式生成 DFA 图。不幸的是，它们都很复杂。
+
+### KMP 模式匹配算法
+
+- Named after D. E. **K**nuth，J. H. **M**orris & V. R. **P**ratt.
+
+#### 教材上的分析与解释
+
+>> ![image-20230716023153977](https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716023154_image-20230716023153977.png)
+>>
+>> ![image-20230716023230769](https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716023230_image-20230716023230769.png)
+
+（我好像没看懂）
+
+#### failure_table
+
+关键是依据模式构建 `failure_table` (就是上面所说的图)，以减少没必要的比较。
+
+- `failure_table[i]` 记录模式中以下标 i 结尾的、与模式前缀匹配的最长字串
+
+  - 例：Pattern: "AAABAAA"
+
+    - `failure_table[0] = 0` (since the first character "A" has no proper suffix that is also a prefix)
+    - `failure_table[1] = 1` (the longest proper suffix that is also a prefix for the substring "AA" is "A" of length 1)
+    - `failure_table[2] = 2` (the longest proper suffix that is also a prefix for the substring "AAA" is "AA" of length 2)
+    - `failure_table[3] = 0` (the longest proper suffix that is also a prefix for the substring "AAAB" is empty, hence 0)
+    - `failure_table[4] = 1` (the longest proper suffix that is also a prefix for the substring "AAABA" is "A" of length 1)
+    - `failure_table[5] = 2` (the longest proper suffix that is also a prefix for the substring "AAABAA" is "AA" of length 2)
+    - `failure_table[6] = 3` (the longest proper suffix that is also a prefix for the substring "AAABAAA" is "AAA" of length 3)
+
+  - 实现
+
+    ```python
+    arr = [None] * len(w)
+    def failure_table(w):
+        m = len(w)
+        j = 0
+        i = 1
+        global arr
+        arr[0] = 0
+    
+        while i < m:
+            if w[j] == w[i]:    #
+                j += 1
+                arr[i] = j
+                i += 1
+            elif j == 0:        #
+                arr[i] = 0
+                i += 1
+            else:               #
+                j = arr[j - 1]
+    ```
+
+- KMP 实现
+
+  ```python
+  def kmp_search(w, s):
+      failure_table(w)
+      j, i = 0, 0
+      m = len(w)
+      n = len(s)
+  
+      while j < m and i < n:
+          if w[j] == s[i] and j == m - 1:  #
+              return True
+          elif w[j] == s[i]:               #
+              j += 1
+              i += 1
+          else:                            #
+              if j != 0:
+                  j = arr[j-1] 
+              else:
+                  i += 1
+  
+      return False
+  ```
+
+#### 总实现
+
+见 [这里](./KMP.py) （ i 和 j 和这里是反的哈）
+
+#### 分析
+
+- 时间复杂度 $O(n+m)$ 
+
+- KMP 图易于构建

@@ -1,4 +1,4 @@
-## Data Structures & Algorithms (using Python)
+## Data Structures & Algorithms
 
 **Textbook:** Bradley N Miller & David L. Ranum, *Problem Solving with Algorithms and Data Structures using Python* 
 
@@ -6,4 +6,5 @@
 
 > The typeset of the markdown files inside [notes](./notes) may not be fine, as I use a personal theme rather than default GitHub theme in my desktop Typora. You may refer to the PDF files in [notes_pdf](./notes_pdf) for a better experience.
 
-Finished on 
+Finished on July 16, 2023.
+

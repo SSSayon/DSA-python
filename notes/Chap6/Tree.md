@@ -84,7 +84,7 @@
       return res
   ```
 
-
+<div style="page-break-after: always;"></div>
 
 ## 二叉堆 Binary Heap
 
@@ -173,7 +173,7 @@
 
   其中第 2~4 步的时间复杂度为 $O(\log n + \log (n-1) + \cdots + \log 2) = O(\log n!)$ ，由 Stirling公式知 $O(\log n!)$ 和 $O(n \log n)$ 是等价无穷大。故堆排序的复杂度为 $O(n \log n)$ 。
 
-
+<div style="page-break-after: always;"></div>
 
 ## 二叉搜索树 BST (Binary Search Tree)
 
@@ -233,7 +233,7 @@
   - <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/BST.png" alt="BST" style="zoom: 25%;" />
   - 解决：AVL 树（见下）
 
-
+<div style="page-break-after: always;"></div>
 
 ## 平衡二叉搜索树 AVL
 
@@ -331,5 +331,126 @@
         return node
     ```
 
+<div style="page-break-after: always;"></div>
+
+## 量化图片
+
+在实践中，我们使用 1 字节（8位）表示像素的每个颜色构成。 8 位可以表示每种三原色的 256 种层次，共可表示 1670 万种颜色。所需的存储空间为每像素 3 字节。
+
+### 简单的图片量化算法
+
+- ```python
+  import sys
+  import os
+  from PIL import Image
+  
+  def simpleQuant():
+      im = Image.open('Path_of_the_file')
+      w, h = im.size
+      for row in range(h):
+          for col in range(w):
+              r, g, b = im.getpixel((col, row))
+              r = r // 36 * 36
+              g = g // 42 * 42
+              b = b // 42 * 42
+              im.putpixel((col, row), (r, g, b))
+      im.save('Path_to_save') # or directly im.show()
+  
+  simpleQuant()
+  ```
+
+- 红色维度上有 7 个值，绿色和蓝色维度上有 6 个值，共 256 种颜色，每个像素只需用 1 字节存储。
+
+  <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715215239_img.png" alt="img" style="zoom:67%;" />
+
+- 问题：大部分图片中的颜色不是均匀分布的，很多颜色可能没有出现在图片中，立方体中对应的部分并没有用到。在量化后的图片中分配没用到的颜色是浪费行为。
+
+  <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715215424_img2.png" alt="img2" style="zoom:50%;" />
+
+### 八叉树改进量化算法
+
+- `OctTree` 的根代表整个立方体。每层代表每个维度上的一个切片，将父节点对应的子立方体等分成 8 块；第 8 层代表所有 1670 万种颜色。
+
+- 注意：并不是完整创建一棵八叉树，而是在使用中逐步增加所需节点。并且，**可手动设置最深层数（例如 5 层）**，以大幅减小存储空间，而对最终图片质量没有大的影响。
+
+- 颜色填入规则
+
+  <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715222637_OctTree.png" alt="OctTree" style="zoom: 33%;" />
+
+#### 实现操作
+
+- 按照给定的颜色目标数目（例如上面的 256 种），选择图片的颜色子集。
+
+  1. 遍历图片的每一个像素：
+     1. 在 OctTree 中查找该像素的颜色，这个颜色应该是位于第 8 层（或设置的最深层数）的一个叶子节点
+     2. 如果没找到，创建一个叶子节点（可能还需要在节点之上创建一些内部节点）
+     3. 如果找到了，将叶子节点的计数器加 1 ，以记录这个颜色用于多少个像素
+  2. 重复以下步骤，直到叶子节点的数目小于等于颜色的目标数目：
+     1. 找到计数最少的叶子节点
+     2. 合并该叶子节点及其所有兄弟节点，形成一个新的叶子节点
+  3. 剩余的叶子节点形成图片的颜色集
+  4. 若要将初始的颜色映射为量化后的值，只需沿着树向下搜索到叶子节点，然后返回叶子节点存储的颜色值
+
+- 实现
+
+  ```python
+  def buildAndDisplay():
+      im = Image.open('Path_of_the_file')
+      w, h = im.size
+      ot = OctTree()
+  
+      for row in range(0, h):
+          for col in range(0, w):
+              r, g, b = im.getpixel((col, row))
+              ot.insert(r, g, b) # Step 1
+  
+      ot.reduce(256)  # Step 2
+  
+      for row in range(0, h):
+          for col in range(0, w):
+              r, g, b = im.getpixel((col, row))
+              nr, ng, nb = ot.find(r, g, b) # Step 4
+              im.putpixel((col, row), (nr, ng, nb))
+  
+      im.show()
+  ```
+
+### 具体实现
+
+- 实现 `OctTree`, `otNode` 两个类
+  - `otNode` 是 `OctTree` 的内部类
+    - `OctTree` 的每个节点都需要访问一些存储于 `OctTree` 类实例中的信息
+    - 没有任何在 `OctTree` 类之外使用 `otNode` 的必要
+  - 上面代码中 `buildAndDisplay()` 用到的所有方法都在 `OctTree` 类中定义
+  - `otNode` 构造方法中含有参数 `outer `，指向创建该节点的 `OctTree` 实例的引用
+    - 其它参数有 red, green, blue, count, **level**, parent, children 等
+    - red, green, blue 是属于该节点的所有像素的对应值的总和（合并时也一样）
+
+- 详见 [这里](./OctTree1.py) （不简单哈！）
+
+  > > 好像还有点问题... 处理有些图片正常，有些图片报错            `ValueError: list.remove(x): x not in list` 
+
+### 分析
+
+- 合并节点时，通过遍历 `leafList`寻找计数最少的节点，效率很低
+  - 利用*优先级队列*代替列表
+  - 注意重载 `__lt__` 方法 ( < 运算符）
+  - 改进后的实现见 [这里](./OctTree2.py) 
+- 实验
+
+<div style="display:flex; justify-content:center;">
+    <div style="text-align:center; margin-right:10px;">
+        <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716004709_cat.jpg" alt="Image 1" width="300">
+        <p><center>原图<br>48.0<font size=2.5>KB</font></center></p>
+    </div>
+    <div style="text-align:center; margin-right:10px;">
+        <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716004709_catQuantized.jpg" alt="Image 2" width="300">
+        <p><center>用简单算法 256 色压缩<br>38.2<font size=2.5>KB</font></center></p>
+    </div>
+    <div style="text-align:center;">
+        <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230716004741_catQuantized2.jpg" alt="Image 3" width="300">
+        <p><center>用八叉图 256 色压缩<br>33.2<font size=2.5>KB</font></center></p>
+    </div>
+</div>
 
 

@@ -125,6 +125,8 @@
             return op1 - op2
     ```
 
+<div style="page-break-after: always;"></div>
+
 ## 队列、双端队列
 
 ### 队列应用
@@ -161,6 +163,8 @@
     ```
 
   - 复杂度：$O(n*k)$，其中 $k$ 为最大数据位数
+
+<div style="page-break-after: always;"></div>
 
 ## 链表、双向链表
 
@@ -229,13 +233,84 @@
         self._length -= 1
     ```
 
-    
+<div style="page-break-after: always;"></div>
 
+## 跳表
+
+- *映射* (map) 的又一实现方式
+
+### 介绍
+
+#### 结构
+
+<img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715191038_SkipList.png" alt="SkipList" style="zoom:80%;" />
+
+```python
+class SkipList:
+    def __init__(self):
+        self.head = None
+```
+
+- 塔
+  - 头节点
   
-
+    ```python
+    class HeaderNode:
+        def __init__(self):
+            self.next = None
+            self.down = None
+    ```
   
+  - 数据节点
+  
+    ```python
+    class DataNode:
+        def __init__(self, key, value):
+            self.key = key
+            self.val = value
+            self.next = None
+            self.down = None
+    ```
+  
+- 层数
 
+  - 每一层都是由数据节点构成的有序链表
+  - 第 0 层是完整的有序链表
 
+#### 方法
 
+- `search` 
 
+  <img src="https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715191640_SkipList_search.png" alt="SkipList_search" style="zoom:80%;" />
+
+  - 从表头开始搜索，用 found, stop 两个布尔类型的变量控制查找
+
+  - 往右查找
+
+    - 若没有节点，则下移一层
+
+    - 若有数据节点，比较键的大小
+
+      - 目标键值小于右边键值：found 置为 True
+
+      - 目标键值小于右边键值：下移一层。若已降至底层，将 stop 置为 True
+      - 目标键值大于右边键值：右移一层
+
+  - 进入下一层后，重复上述过程
+
+- `insert` 
+
+  ![SkipList_insert](https://cdn.jsdelivr.net/gh/SSSayon/imgbed@main/img/20230715192404_SkipList_insert.png)
+
+  - 使用同样搜索策略，找到第 0 层的插入位置
+  - 新建一个数据节点，并插入第 0 层的列表中。塔高：通过 “flip-the-coin” **随机确定**
+  - 用*栈*保存每层的插入点
+
+### 实现
+
+- 详见 [这里](./SkipList.py) 
+
+### 分析
+
+- `search` 和 `insert` 的时间复杂度均为 $O(\log n)$ 
 
